@@ -1,20 +1,22 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getMateriaBySlug } from '@/app/(backend)/services/materias'
-import { slugSchema } from '@/backend/schemas'
-import { returnInvalidDataErrors, zodErrorHandler } from '@/utils'
-import { toErrorMessage } from '@/utils/api/toErrorMessage'
+import { zodErrorHandler } from '@/utils/api/errorHandlers';
+import { toErrorMessage } from '@/utils/api/toErrorMessage';
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const { slug } = await params
-
-    const parseResult = slugSchema.safeParse(slug)
-    if (!parseResult.success) {
-      return returnInvalidDataErrors(parseResult.error)
+    
+    if (!slug) {
+      return NextResponse.json(
+        toErrorMessage('Slug não fornecido'),
+        { status: 400 }
+      )
     }
+
     const materia = await getMateriaBySlug(slug)
 
     if (!materia) {
