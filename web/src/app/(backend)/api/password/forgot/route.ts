@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth"; // your betterAuth export
-import { blockForbiddenRequests, validBody } from "@/utils";
+import { blockForbiddenRequests } from '@/utils/api/blockRequest';
+import { validBody } from '@/utils/api/validBody';
 import { AllowedRoutes } from "@/types";
 
 const allowedRoles: AllowedRoutes = {
