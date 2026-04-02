@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { auth } from "./auth";
-import type { Role } from "./generated/prisma";
+import type { Role } from "./generated/prisma"; // Importar apenas o 'type' não quebra o Edge
 
 // Configuration for different page types
 const ROUTE_CONFIG = {
@@ -11,24 +9,18 @@ const ROUTE_CONFIG = {
     "/perfil",
     "/settings",
   ],
-  
-  // Pages that require ADMIN or SUPER_ADMIN role
   adminRequired: [
     "/admin/**",
   ],
-  
   redirectIfAuth: [
     "/login",
     "/cadastro",
   ],
-  
-  // Special routes with custom logic
   specialRoutes: [
-    "/admin", // Special handling for /admin route
+    "/admin", 
   ]
 };
 
-// Helper function to check if path matches any pattern
 function matchesAnyPattern(pathname: string, patterns: string[]): boolean {
   return patterns.some(pattern => {
     if (pattern.endsWith('**')) {
@@ -47,29 +39,36 @@ function hasRequiredRole(userRole: Role | undefined, requiredRoles: Role[]): boo
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
+  // A MÁGICA: Em vez de importar o auth.ts e o Prisma, fazemos uma requisição HTTP limpa
+  let sessionData = null;
+  try {
+    const response = await fetch(new URL("/api/auth/get-session", request.url), {
+      headers: {
+        cookie: request.headers.get("cookie") || "",
+      },
+    });
+    if (response.ok) {
+      sessionData = await response.json();
+    }
+  } catch (error) {
+    console.error("Erro ao buscar sessão no middleware:", error);
+  }
   
-  const userRole = session?.role as Role | undefined;
-  const isAuthenticated = !!session?.user;
+  const userRole = sessionData?.user?.role as Role | undefined;
+  const isAuthenticated = !!sessionData?.session;
 
-  // Handle /admin special route
   if (pathname === "/admin") {
     if (!isAuthenticated) {
       return NextResponse.next();
     }
     
     if (hasRequiredRole(userRole, ["ADMIN", "SUPER_ADMIN"])) {
-      // Redirect admin users to dashboard
       return NextResponse.redirect(new URL("/admin/dashboard", request.url));
     } else {
-      // Redirect non-admin authenticated users to home
       return NextResponse.redirect(new URL("/", request.url));
     }
   }
 
-  
   if (matchesAnyPattern(pathname, ROUTE_CONFIG.redirectIfAuth)) {
     if (isAuthenticated) {
       return NextResponse.redirect(new URL("/aprender", request.url));
@@ -100,7 +99,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  runtime: "nodejs",
+  // Removi o runtime: "nodejs" porque a Vercel exige Edge para o middleware
   matcher: [
     "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
   ],
