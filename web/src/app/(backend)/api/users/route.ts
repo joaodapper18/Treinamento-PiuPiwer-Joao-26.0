@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { registerSchema } from "@/backend/schemas";
-import { blockForbiddenRequests, returnInvalidDataErrors, validBody, zodErrorHandler } from "@/utils/api";
+import { blockForbiddenRequests } from '@/utils/api/blockRequest';
+import { validBody } from '@/utils/api/validBody';
+import { returnInvalidDataErrors, zodErrorHandler } from '@/utils/api/errorHandlers';
 import { findUserByEmail, getAllUsers } from "../../services/users";
 import { AllowedRoutes } from "@/types";
 import { auth } from "@/auth";

@@ -1,2 +1,2 @@
 export * from "./validations";
-export * from './api';
+export * from "./validations";
