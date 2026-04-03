@@ -1,44 +1,68 @@
 import { getPiusAction } from "./_actions/piu";
-import CarouselExample from "./_components/CarouselExample";
 import CriarPiu from "./_components/CriarPiu";
 
-// Como é uma página dentro da pasta (landing-pages), ela é um Server Component por padrão
-export default async function LandingPage() {
-  // 1. Busca apenas os Pius reais para o Feed dinâmico embaixo
-  const piusDoBanco = await getPiusAction();
+export default async function HomePage() {
+  const pius = await getPiusAction();
 
   return (
-    <div className="min-h-screen bg-white pb-20">
-      {/* RESTORED HEADER: Removed "Gnomo Alquimista" and added PiuPiwer News */}
-      <div className="text-center pt-10 mb-6 px-4">
-        <h1 className="text-4xl font-extrabold text-blue-900">PiuPiwer News</h1>
-        <p className="text-gray-500 mt-2">Destaques da Poli Júnior</p>
-      </div>
+    <div className="min-h-screen bg-[#050505] text-white flex justify-center font-sans">
+      <div className="w-full flex">
+        
+        {/* 1. SIDEBAR (Mantida exatamente como estava) */}
+        <aside className="w-20 xl:w-72 border-r border-[#222] p-8 sticky top-0 h-screen flex flex-col items-center xl:items-start flex-shrink-0">
+          <div className="text-[#00ff88] text-5xl font-black mb-14 tracking-tighter">P.</div>
+          <nav className="space-y-12">
+            <div className="text-[#00ff88] text-2xl font-extrabold cursor-pointer tracking-tight flex items-center gap-4">
+               <span>🏠</span><span className="hidden xl:inline">HOME</span>
+            </div>
+            <div className="text-gray-500 text-2xl font-extrabold cursor-pointer hover:text-white transition-colors tracking-tight flex items-center gap-4">
+               <span>👤</span><span className="hidden xl:inline">PERFIL</span>
+            </div>
+            <div className="text-gray-500 text-2xl font-extrabold cursor-pointer hover:text-white transition-colors tracking-tight flex items-center gap-4">
+               <span>🔔</span><span className="hidden xl:inline">NOTIFICAÇÕES</span>
+            </div>
+          </nav>
+        </aside>
 
-      {/* CARROSSEL: Agora com as notícias fixas Soso, Pipoca, Manu */}
-      <CarouselExample />
+        {/* 2. FEED CENTRAL (Agora expandido para ocupar o resto da tela) */}
+        <main className="flex-1 flex justify-center p-6 lg:p-12 overflow-y-auto">
+          {/* Container limitado para o texto não ficar gigante e difícil de ler */}
+          <div className="w-full max-w-3xl">
+            <div className="mb-12">
+              <h1 className="text-4xl font-black mb-8 tracking-tighter">FEED</h1>
+              <div className="input-area-new shadow-2xl shadow-green-950/20">
+                <CriarPiu />
+              </div>
+            </div>
 
-      <div className="max-w-2xl mx-auto px-4 mt-12">
-        {/* INPUT: Mantemos o seu Criar Piu */}
-        <CriarPiu />
-
-        {/* FEED: Lista de Pius embaixo dinâmico */}
-        <section className="mt-10">
-           <h2 className="text-2xl font-bold mb-6 border-b pb-2 text-blue-900">Feed Recente</h2>
-           
-           {piusDoBanco.length === 0 ? (
-             <p className="text-gray-400 text-center">Nenhum Piu por aqui ainda...</p>
-           ) : (
-             piusDoBanco.map((piu) => (
-               <div key={piu.id} className="mb-4 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="font-bold text-gray-900">{piu.user.name}</span>
+            <div className="space-y-6">
+              {pius.map((piu: any) => (
+                <div key={piu.id} className="card-piu-new">
+                  <div className="flex gap-5">
+                    <div className="w-14 h-14 rounded-full bg-[#1a1a1a] border-2 border-[#00ff88]/30 flex-shrink-0 flex items-center justify-center text-2xl">
+                      👤
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-extrabold text-[#00ff88] text-xl">@{piu.user.username}</span>
+                        <span className="text-gray-600 text-xs font-mono">AGORA</span>
+                      </div>
+                      <p className="text-gray-200 leading-relaxed text-lg">{piu.text}</p>
+                      <div className="mt-8 pt-4 border-t border-[#222] flex gap-10 text-gray-500 text-sm font-bold">
+                        <button className="hover:text-red-500 transition-colors flex items-center gap-2">❤️ {piu.likes}</button>
+                        <button className="hover:text-white transition-colors flex items-center gap-2">💬 REPLY</button>
+                        <button className="hover:text-[#00ff88] transition-colors flex items-center gap-2">🔄 SHARE</button>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-gray-700 leading-relaxed">{piu.text}</p>
-               </div>
-             ))
-           )}
-        </section>
+                </div>
+              ))}
+            </div>
+          </div>
+        </main>
+
+        {/* 3. A COLUNA DIREITA COM O CARROSSEL FOI REMOVIDA DAQUI */}
+
       </div>
     </div>
   );

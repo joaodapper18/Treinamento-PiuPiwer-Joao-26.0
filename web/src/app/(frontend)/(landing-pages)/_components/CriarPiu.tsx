@@ -1,59 +1,48 @@
-"use client";
-
-import { useState } from "react";
-import toast from "react-hot-toast";
-import { createPiuAction } from "../_actions/piu";
+"use client"
+import React, { useState } from 'react';
+import { createPiuAction } from "../_actions/piu"; // Verifique se o nome da action é esse mesmo
 
 export default function CriarPiu() {
-  const [texto, setTexto] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [text, setText] = useState("");
+  const [isPending, setIsPending] = useState(false);
 
-  const handlePublicar = async () => {
-    if (!texto.trim()) {
-      toast.error("Escreva algo antes de piar!");
-      return;
-    }
+  async function handlePost() {
+    if (text.length === 0 || text.length > 144) return;
 
-    setLoading(true);
-    
+    setIsPending(true);
     try {
-      const formData = new FormData();
-      formData.append("piu-text", texto);
-
-      await createPiuAction(formData);
-
-      toast.success("Piu publicado com sucesso!");
-      setTexto("");
-    } catch { 
-      // Repare que removi o "(error)". 
-      // Se não vamos usar a variável, não precisamos declarar ela!
-      toast.error("Erro ao publicar o Piu.");
+      // Aqui chamamos a função que você copiou da Sophia
+      await createPiuAction(text); 
+      setText(""); // Limpa o campo após postar
+      alert("Piu enviado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao postar:", error);
+      alert("Erro ao enviar o Piu. Tente novamente.");
     } finally {
-      setLoading(false);
+      setIsPending(false);
     }
-  };
+  }
 
   return (
-    <div className="w-full bg-white border border-gray-200 rounded-2xl p-4 shadow-sm mb-8">
-      <textarea
-        value={texto}
-        onChange={(e) => setTexto(e.target.value)}
+    <div>
+      <textarea 
+        className="textarea-new"
         placeholder="O que está acontecendo?"
-        className="w-full resize-none border-none focus:ring-0 text-xl text-black placeholder-gray-400 min-h-[100px] outline-none"
-        maxLength={140}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={3}
+        disabled={isPending}
       />
-      
-      <div className="flex justify-between items-center border-t pt-3 mt-2">
-        <span className={`text-sm ${texto.length >= 140 ? "text-red-500 font-bold" : "text-gray-400"}`}>
-          {texto.length}/140
+      <div className="flex justify-between items-center border-t border-[#222] pt-4">
+        <span className={`font-mono text-sm ${text.length > 144 ? 'text-red-500' : 'text-gray-600'}`}>
+          {text.length}/144
         </span>
-        
-        <button
-          onClick={handlePublicar}
-          disabled={loading || !texto.trim()}
-          className="bg-blue-600 text-white px-6 py-2 rounded-full font-bold hover:bg-blue-700 disabled:opacity-50 transition-all"
+        <button 
+          className="btn-piu-new"
+          onClick={handlePost} // AQUI ESTÁ A LÓGICA QUE FALTAVA
+          disabled={text.length === 0 || text.length > 144 || isPending}
         >
-          {loading ? "Piando..." : "Piar"}
+          {isPending ? "ENVIANDO..." : "PIAR"}
         </button>
       </div>
     </div>
