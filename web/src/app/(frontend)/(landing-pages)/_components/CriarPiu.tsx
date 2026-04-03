@@ -24,7 +24,9 @@ export default function CriarPiu() {
 
       toast.success("Piu publicado com sucesso!");
       setTexto("");
-    } catch (error) {
+    } catch { 
+      // Repare que removi o "(error)". 
+      // Se não vamos usar a variável, não precisamos declarar ela!
       toast.error("Erro ao publicar o Piu.");
     } finally {
       setLoading(false);

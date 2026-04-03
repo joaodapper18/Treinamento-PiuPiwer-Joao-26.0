@@ -25,5 +25,25 @@ export async function createPiuAction(formData: FormData) {
     },
   });
 
+  // Isso limpa o cache e faz o carrossel atualizar na hora que você posta
   revalidatePath("/");
+}
+
+// NOVA FUNÇÃO: Busca os últimos 6 pius para o carrossel
+export async function getPiusAction() {
+  try {
+    const pius = await prisma.piu.findMany({
+      include: {
+        user: true, 
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 6,
+    });
+    return pius;
+  } catch (error) {
+    console.error("Erro ao buscar pius:", error);
+    return [];
+  }
 }

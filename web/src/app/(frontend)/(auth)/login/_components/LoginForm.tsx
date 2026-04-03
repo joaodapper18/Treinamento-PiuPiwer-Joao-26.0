@@ -24,7 +24,8 @@ export default function LoginForm() {
       if (result.error) {
         toast.error(result.error.message || "Erro ao entrar");
       }
-    } catch (error) {
+    } catch {
+      // Ajuste aqui: removi o (error) que não estava sendo usado
       toast.error("Erro no sistema");
     } finally {
       setLoading(false);
