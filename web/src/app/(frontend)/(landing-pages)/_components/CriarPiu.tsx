@@ -1,45 +1,52 @@
 "use client"
 import React, { useState } from 'react';
-import { createPiuAction } from "../_actions/piu"; // Verifique se o nome da action é esse mesmo
+import { createPiuAction } from "../_actions/piu";
 
 export default function CriarPiu() {
   const [text, setText] = useState("");
   const [isPending, setIsPending] = useState(false);
 
-  async function handlePost() {
+  async function handlePost(e: React.FormEvent) {
+    e.preventDefault();
     if (text.length === 0 || text.length > 144) return;
 
     setIsPending(true);
+    const formData = new FormData();
+    formData.append("piu-text", text);
+
     try {
-      // Aqui chamamos a função que você copiou da Sophia
-      await createPiuAction(text); 
-      setText(""); // Limpa o campo após postar
-      alert("Piu enviado com sucesso!");
+      const result = await createPiuAction(formData);
+      if (result?.success) {
+        setText("");
+        // Força a página a recarregar para buscar a lista nova do banco
+        window.location.reload(); 
+      } else {
+        alert("Erro: " + (result?.error || "Desconhecido"));
+      }
     } catch (error) {
-      console.error("Erro ao postar:", error);
-      alert("Erro ao enviar o Piu. Tente novamente.");
+      alert("Erro ao enviar.");
     } finally {
       setIsPending(false);
     }
   }
 
   return (
-    <div>
+    <div className="w-full">
       <textarea 
-        className="textarea-new"
+        className="textarea-new w-full bg-transparent text-white text-xl outline-none resize-none"
         placeholder="O que está acontecendo?"
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={3}
         disabled={isPending}
       />
-      <div className="flex justify-between items-center border-t border-[#222] pt-4">
+      <div className="flex justify-between items-center border-t border-[#222] pt-4 mt-2">
         <span className={`font-mono text-sm ${text.length > 144 ? 'text-red-500' : 'text-gray-600'}`}>
           {text.length}/144
         </span>
         <button 
           className="btn-piu-new"
-          onClick={handlePost} // AQUI ESTÁ A LÓGICA QUE FALTAVA
+          onClick={handlePost}
           disabled={text.length === 0 || text.length > 144 || isPending}
         >
           {isPending ? "ENVIANDO..." : "PIAR"}

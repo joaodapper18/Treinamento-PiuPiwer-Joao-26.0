@@ -1,109 +1,71 @@
-generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
-}
-
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  USER
-  ADMIN
-  SUPER_ADMIN
+generator client {
+  provider = "prisma-client-js"
 }
 
-// Modelos do PiuPiwer
+// --- MODELOS DO SISTEMA (PIUPIWER) ---
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String    @unique
+  username      String    @unique
+  password      String?   // Opcional se usar login social, obrigatório para e-mail/senha
+  emailVerified Boolean?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relacionamentos
+  pius          Piu[]
+  sessions      Session[]
+  accounts      Account[]
+
+  role          Role      @default(USER)
+
+  @@map("user")
+}
+
 model Piu {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   text      String
-  userId    String
+  userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 
   @@map("piu")
 }
 
-model User {
-  // nao mexer entre aqui >
-  id            String    @id @map("_id") 
-  name          String
-  email         String    @unique
-  emailVerified Boolean?
-  image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
-  role          Role      @default(USER)
-  // < e aqui
-
-  // Relacionamento com os Pius
-  pius          Piu[]
-
-  @@map("user")
+enum Role {
+  USER
+  ADMIN
 }
 
-// Modelos de exemplo (opcionais, mantidos do seu original)
-model Curso {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  descricao String
-  slug      String @unique
+// --- CONFIGURAÇÕES DO BETTER AUTH (NÃO MEXER) ---
 
-  materiasRelacionadas CursoMateriaRelacionada[]
-}
-
-model CursoMateriaRelacionada {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-
-  curso     Curso  @relation(fields: [cursoId], references: [id])
-  cursoId   String
-
-  materia   Materia @relation(fields: [materiaId], references: [id])
-  materiaId String
-
-  @@unique([cursoId, materiaId])
-}
-
-model Materia {
-  id                 String                    @id @default(uuid()) @map("_id")
-  name               String
-  descricao          String
-  cor                String
-  slug               String                    @unique
-  cursosRelacionados CursoMateriaRelacionada[]
-}
-
-model Licao {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId 
-  name      String
-  descricao String
-  archived  Boolean? @default(false)
-}
-
-// Configurações do Better Auth (evitar mexer)
 model Session {
-  id        String   @id @map("_id")
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   expiresAt DateTime
-  token     String
+  token     String   @unique
   createdAt DateTime
   updatedAt DateTime
   ipAddress String?
   userAgent String?
-  userId    String
+  userId    String   @db.ObjectId
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@map("session")
 }
 
 model Account {
-  id                    String    @id @map("_id")
+  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
   accountId             String
   providerId            String
-  userId                String
+  userId                String    @db.ObjectId
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
@@ -119,7 +81,7 @@ model Account {
 }
 
 model Verification {
-  id         String    @id @map("_id")
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
   identifier String
   value      String
   expiresAt  DateTime
@@ -127,4 +89,40 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+// --- MODELOS EXTRAS (CURSOS/AULAS) ---
+
+model Curso {
+  id                   String                    @id @default(auto()) @map("_id") @db.ObjectId
+  name                 String
+  descricao            String
+  slug                 String                    @unique
+  materiasRelacionadas CursoMateriaRelacionada[]
+}
+
+model CursoMateriaRelacionada {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  curso     Curso   @relation(fields: [cursoId], references: [id])
+  cursoId   String  @db.ObjectId
+  materia   Materia @relation(fields: [materiaId], references: [id])
+  materiaId String  @db.ObjectId
+
+  @@unique([cursoId, materiaId])
+}
+
+model Materia {
+  id                 String                    @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  descricao          String
+  cor                String
+  slug               String                    @unique
+  cursosRelacionados CursoMateriaRelacionada[]
+}
+
+model Licao {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  descricao String
+  archived  Boolean? @default(false)
 }

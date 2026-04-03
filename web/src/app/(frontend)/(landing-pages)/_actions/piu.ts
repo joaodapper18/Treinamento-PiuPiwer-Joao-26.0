@@ -7,51 +7,43 @@ import { revalidatePath } from "next/cache";
 
 const prisma = new PrismaClient();
 
-// Ação para criar um Piu
 export async function createPiuAction(formData: FormData) {
   const session = await auth.api.getSession({
     headers: await headers()
   });
 
-  if (!session) return;
+  if (!session || !session.user) return { error: "Não autorizado" };
 
   const text = formData.get("piu-text") as string;
 
-  if (!text || text.length > 140) return;
+  if (!text || text.length > 144) return { error: "Texto inválido" };
 
-  await prisma.piu.create({
-    data: {
-      text: text,
-      userId: session.user.id,
-    },
-  });
-
-  revalidatePath("/");
-}
-
-// Busca os Pius para o Feed (embaixo)
-export async function getPiusAction() {
   try {
-    return await prisma.piu.findMany({
-      include: {
-        user: true, 
-      },
-      orderBy: {
-        createdAt: "desc",
+    await prisma.piu.create({
+      data: {
+        text: text,
+        userId: session.user.id,
       },
     });
+
+    // ISSO AQUI É O QUE FAZ O POST APARECER NA HORA:
+    revalidatePath("/"); 
+    revalidatePath("/perfil");
+
+    return { success: true };
   } catch (error) {
-    console.error("Erro ao buscar pius:", error);
-    return [];
+    console.error("Erro ao criar piu:", error);
+    return { error: "Falha no banco de dados" };
   }
 }
 
-// Busca as Matérias para o Carrossel (as notícias bonitas)
-export async function getMateriasAction() {
+export async function getPiusAction() {
   try {
-    return await prisma.materia.findMany();
+    return await prisma.piu.findMany({
+      include: { user: true },
+      orderBy: { createdAt: "desc" },
+    });
   } catch (error) {
-    console.error("Erro ao buscar matérias:", error);
     return [];
   }
 }
