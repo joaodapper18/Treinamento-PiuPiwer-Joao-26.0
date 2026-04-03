@@ -22,6 +22,7 @@
       "@/*": ["./src/*"],
       "@/backend/*": ["./src/app/(backend)/*"],
       "@/frontend/*": ["./src/app/(frontend)/*"],
+      "@/generated/*": ["./src/generated/*"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
